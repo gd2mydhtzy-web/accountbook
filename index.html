@@ -504,7 +504,8 @@ function drawSheet(focus){
       ${F.addWp?`<div class="inline"><input id="sh-wpname" placeholder="직장 이름" aria-label="직장 이름"><button id="sh-wpok">추가</button></div>`:""}
       ${timeHTML()}`;
   }else if(F.type==="저축"){
-    cats=`<div class="chips">${S.sav.map(c=>`<button class="chip" data-cat="${esc(c)}" data-grp="저축" aria-pressed="${F.cat===c}" style="${F.cat===c?"background:"+col:""}">${esc(c)}</button>`).join("")}</div>`;
+    cats=`<div class="chips">${S.sav.map(c=>`<button class="chip" data-cat="${esc(c)}" data-grp="저축" aria-pressed="${F.cat===c}" style="${F.cat===c?"background:"+col:""}">${esc(c)}</button>`).join("")}<button class="chip add" id="sh-addsav">＋ 저축 항목 추가</button></div>
+      ${F.addSav?`<div class="inline"><input id="sh-savname" placeholder="예: 비상금, 여행 통장" aria-label="저축 항목 이름"><button id="sh-savok">추가</button></div>`:""}`;
   }else{
     cats=Object.entries(S.exp).map(([g,list])=>`<div class="sec" style="margin-top:8px">${esc(g)}</div><div class="chips">${list.map(c=>{const on=F.cat===c&&F.group===g;return `<button class="chip" data-cat="${esc(c)}" data-grp="${esc(g)}" aria-pressed="${on}" style="${on?"background:"+(g==="헌금"?"var(--tithe)":col):""}">${esc(c)}</button>`;}).join("")}</div>`).join("");
   }
@@ -592,6 +593,8 @@ function bindSheet(){
   L.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{keepFields();F.repeat=b.dataset.rep;drawSheet();});
   L.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{const i=+b.dataset.day;F.days=F.days.includes(i)?F.days.filter(x=>x!==i):[...F.days,i];b.setAttribute("aria-pressed",String(F.days.includes(i)));});
   const aw=$("sh-addwp");if(aw)aw.onclick=()=>{keepFields();F.addWp=true;drawSheet();const i=$("sh-wpname");if(i)i.focus();};
+  const as=$("sh-addsav");if(as)as.onclick=()=>{keepFields();F.addSav=true;drawSheet();const i=$("sh-savname");if(i)i.focus();};
+  const so=$("sh-savok");if(so)so.onclick=()=>{keepFields();const nm=$("sh-savname").value.trim();if(!nm)return;if(!S.sav.includes(nm))S.sav.push(nm);markDirty([],true);F.cat=nm;F.group="저축";F.addSav=false;drawSheet();};
   const ok=$("sh-wpok");if(ok)ok.onclick=()=>{keepFields();const nm=$("sh-wpname").value.trim();if(!nm)return;const w={id:uid(),name:nm,tithe:true,archived:false,pay:"none",rate:0,brk:0,settle:"manual"};S.workplaces.push(w);markDirty([],true);F.wp=w.id;F.tithe=true;F.addWp=false;drawSheet();};
   const pcb=$("sh-paid");if(pcb)pcb.onchange=()=>{keepFields();drawSheet();};
   ["sh-tin","sh-tout","sh-brk"].forEach(id=>{const el=$(id);if(el){el.oninput=recalc;el.onchange=recalc;}});
