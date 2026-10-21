@@ -100,6 +100,7 @@ input,select,textarea{font-family:inherit;font-size:16px;color:var(--ink)}
 .field{width:100%;border:none;border-bottom:.5px solid var(--line2);background:transparent;padding:10px 2px;outline:none}
 .sec{font-size:12px;color:var(--sub);margin:14px 0 6px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip,.seg button,.days button{touch-action:manipulation}
 .chip{font-size:14px;padding:7px 12px;border-radius:999px;border:.5px solid var(--line2);background:var(--card)}
 .chip[aria-pressed="true"]{color:#fff;border-color:transparent}
 .chip.add{color:var(--sub);border-style:dashed}
@@ -575,6 +576,7 @@ function keepFields(){
   const pc=$("sh-paid");if(pc)F.paidChk=pc.checked;const po=$("sh-paidon");if(po)F.paidOn=po.value;
   const ti2=$("sh-tin");if(ti2)F.tin=ti2.value;const to2=$("sh-tout");if(to2)F.tout=to2.value;const bk=$("sh-brk");if(bk)F.brk=Math.max(0,+bk.value||0);
 }
+function clearErr(){F.err="";const e=$("sh-err");if(e)e.textContent="";}
 function bindSheet(){
   const L=$("layer");
   $("sh-close").onclick=closeSheet;
@@ -582,10 +584,13 @@ function bindSheet(){
   a.oninput=()=>{const raw=a.value.replace(/[^0-9]/g,"").slice(0,10);a.value=raw?n(+raw):"";F.amountStr=raw;};
   L.querySelectorAll("[data-type]").forEach(b=>b.onclick=()=>{keepFields();if(F.type!==b.dataset.type){F.type=b.dataset.type;F.cat=null;F.group=null;F.wp=null;F.pay=null;F.err="";}drawSheet();});
   L.querySelectorAll("[data-wp]").forEach(b=>b.onclick=()=>{keepFields();F.wp=b.dataset.wp;const w=S.workplaces.find(w=>w.id===F.wp);if(w&&!F.editing){F.tithe=!!w.tithe;F.brk=w.brk||0;if(w.pay==="fixed"&&w.rate)F.amountStr=String(w.rate);}F.err="";drawSheet();recalc();});
-  L.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{keepFields();F.cat=b.dataset.cat;F.group=b.dataset.grp;F.err="";drawSheet();});
-  L.querySelectorAll("[data-pay]").forEach(b=>b.onclick=()=>{keepFields();F.pay=b.dataset.pay;F.err="";drawSheet();});
+  L.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{F.cat=b.dataset.cat;F.group=b.dataset.grp;clearErr();
+    const col=F.type==="저축"?"var(--sav)":"var(--exp)";
+    L.querySelectorAll("[data-cat]").forEach(x=>{const on=x===b;x.setAttribute("aria-pressed",String(on));x.style.background=on?(x.dataset.grp==="헌금"?"var(--tithe)":col):"";});});
+  L.querySelectorAll("[data-pay]").forEach(b=>b.onclick=()=>{F.pay=b.dataset.pay;clearErr();
+    L.querySelectorAll("[data-pay]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));});
   L.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{keepFields();F.repeat=b.dataset.rep;drawSheet();});
-  L.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{keepFields();const i=+b.dataset.day;F.days=F.days.includes(i)?F.days.filter(x=>x!==i):[...F.days,i];drawSheet();});
+  L.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{const i=+b.dataset.day;F.days=F.days.includes(i)?F.days.filter(x=>x!==i):[...F.days,i];b.setAttribute("aria-pressed",String(F.days.includes(i)));});
   const aw=$("sh-addwp");if(aw)aw.onclick=()=>{keepFields();F.addWp=true;drawSheet();const i=$("sh-wpname");if(i)i.focus();};
   const ok=$("sh-wpok");if(ok)ok.onclick=()=>{keepFields();const nm=$("sh-wpname").value.trim();if(!nm)return;const w={id:uid(),name:nm,tithe:true,archived:false,pay:"none",rate:0,brk:0,settle:"manual"};S.workplaces.push(w);markDirty([],true);F.wp=w.id;F.tithe=true;F.addWp=false;drawSheet();};
   const pcb=$("sh-paid");if(pcb)pcb.onchange=()=>{keepFields();drawSheet();};
